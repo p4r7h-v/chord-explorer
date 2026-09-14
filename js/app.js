@@ -2,20 +2,6 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const theory = ChordTheory;
-  const shortlist = [
-    "U01",
-    "U02",
-    "D04",
-    "D08",
-    "D18",
-    "V01",
-    "V02",
-    "V03",
-    "V04",
-    "V06",
-    "V07",
-    "V10",
-  ];
   const moodGroups = {
     Epic: ["epic", "expansive", "sweeping", "grandeur", "bold", "anthemic"],
     Dark: ["dark", "brooding", "ominous", "uncanny"],
@@ -45,7 +31,7 @@
       JSON.parse(localStorage.getItem("chord-favorites") || "[]"),
     );
   } catch {}
-  let collection = "cinematic",
+  let collection = "all",
     mood = "",
     current = ProgressionLibrary.find((p) => p.id === "U01");
   let free = false,
@@ -81,11 +67,9 @@
     return ProgressionLibrary.filter(
       (p) =>
         (collection === "all" ||
-          (collection === "start"
-            ? shortlist.includes(p.id)
-            : collection === "cinematic"
-              ? p.collection === "cinematic"
-              : favorites.has(p.id))) &&
+          (collection === "cinematic"
+            ? p.collection === "cinematic"
+            : favorites.has(p.id))) &&
         (!mood || p.tags.some((tag) => moodGroups[mood].includes(tag))) &&
         `${p.name} ${p.tags.join(" ")} ${p.progression} ${p.id}`
           .toLowerCase()
@@ -148,7 +132,7 @@
     $("title").textContent = free ? "Play your own" : current.name;
     $("evidence").textContent = free
       ? "NATURAL MINOR · 7 DEGREES"
-      : current.evidence;
+      : "CHORD PROGRESSION";
     $("feeling").textContent = free
       ? "Hold a number. Follow your ear."
       : current.tags.join(" / ");
@@ -162,15 +146,6 @@
     $("explore").setAttribute("aria-pressed", String(!free));
     $("free").setAttribute("aria-pressed", String(free));
     $("play").disabled = free;
-    $("source").replaceChildren(document.createTextNode(current.detail + " "));
-    if (current.source) {
-      const a = document.createElement("a");
-      a.href = current.source;
-      a.target = "_blank";
-      a.rel = "noopener";
-      a.textContent = "Read source ↗";
-      $("source").append(a);
-    }
     $("steps").replaceChildren(
       ...chords().map((chord, i) => {
         const button = document.createElement("button");

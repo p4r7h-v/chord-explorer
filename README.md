@@ -2,13 +2,13 @@
 
 Find a progression by feeling, then make it your own. A compact browser instrument with piano and supersaw, whole-loop playback, keyboard controls, and a live piano visualization.
 
-![Cinema 9 explorer with the E minor chord and piano notes highlighted](docs/cinema-explorer-preview.jpg)
+![Chord Explorer with the E minor chord and piano notes highlighted](docs/explorer-library-preview.jpg)
 
 ## Start exploring
 
 Open `index.html` in a modern browser, keeping the `js` directory and `styles.css` beside it. No build step, account, or sample downloads.
 
-1. Pick a feeling or browse **For you**, **All 39**, and **Saved**.
+1. Pick a feeling or browse **All progressions**, **Cinematic examples**, and **Favorites**.
 2. Select a progression and press **Space** to loop it.
 3. Use **← / →** to compare candidates. During playback, the next choice takes over at the next chord boundary.
 4. Star favorites or pin **A / B** to compare two progressions and their voicings.
@@ -35,7 +35,7 @@ Click outside a text input, dropdown, or slider before using shortcuts. Pointer 
 
 ## Library and notation
 
-The library contains 18 documented patterns or interpretations, 12 editorial variations, and nine cinematic video references. **Cinema 9** maps Kevin Kuschel’s examples to their chapter links and feeling labels; see [the video analysis](docs/research/cinematic-video.md). Mood labels suggest what to listen for; they are not fixed emotional rules. Sources and provenance are available under **About this pattern** and in [the research notes](docs/research/progression-library.md).
+The library contains 39 progressions, with a cinematic collection and mood filters to help you explore. Mood labels suggest what to listen for; they are not fixed emotional rules.
 
 Numerals use major-referenced roots: in E, **i–♭III–♭VII–iv** is **Em–G–D–Am**. Chord quality is explicit, so **V** and **v** sound different. Changing the tonic transposes the pattern without changing its qualities.
 
