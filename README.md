@@ -2,7 +2,7 @@
 
 **Find a chord progression by ear—one key per chord.** Hold number keys **1–6** to audition chords, switch between piano and supersaw, and try different orders without learning keyboard fingerings first.
 
-![Chord Explorer with piano selected and six E minor chord buttons](docs/chord-explorer.jpg)
+![Chord Explorer with piano selected and six E minor chord buttons](docs/piano-preview.jpg)
 
 ## Try it in 30 seconds
 
@@ -16,7 +16,7 @@ Click a blank area of the page before using number shortcuts if a dropdown or vo
 
 Choose **Piano** to hear the harmony clearly, or **Supersaw** to audition a wider synth sound. Changing the sound keeps the same chord voicings.
 
-![F minor with Supersaw selected and all six chord buttons](docs/supersaw-chords.jpg)
+![F minor with Supersaw selected and all six chord buttons](docs/supersaw-preview.jpg)
 
 ### Start with these progressions
 
