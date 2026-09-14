@@ -1,20 +1,61 @@
 # Chord Explorer
 
-A tiny, self-contained chord audition tool. Open `index.html` in a modern browser and click a chord to enable audio. No installation or build step required.
+**Find a chord progression by ear—one key per chord.** Hold number keys **1–6** to audition chords, switch between piano and supersaw, and try different orders without learning keyboard fingerings first.
 
-## Play
+![Chord Explorer with piano selected, six E minor chord buttons, and recent chord history](docs/chord-explorer.png)
 
-- Hold **1–6**, or hold a chord button, to play. Release to fade out.
-- Switch between synthesized **Piano** and a stereo **Supersaw**.
-- Choose E, F, F♯, G, or D minor.
-- Toggle the low root note and adjust volume.
-- Press **Escape** to stop all notes.
-- Recent history shows the last 24 chord presses; it does not record audio or timing and resets on reload.
+## Try it in 30 seconds
 
-The six buttons map to i, VI, III, VII, iv, and v. Try **1 → 2 → 3 → 4** or **1 → 3 → 4 → 2**.
+1. [Download the ZIP](https://github.com/p4r7h-v/chord-explorer/archive/refs/heads/main.zip) and unzip it.
+2. Open **index.html** in a modern browser. No install, account, or build step.
+3. Click a chord to enable audio, then hold **1**, **2**, **3**, or **4**. Release to let it fade.
 
-## How it works
+Click a blank area of the page before using number shortcuts if a dropdown or volume slider has focus. You can also hold the chord buttons with a mouse or touch.
 
-HTML, CSS, and JavaScript live in one file. The Web Audio API generates every note locally with oscillators. No sample downloads, dependencies, analytics, or backend. The piano is a piano-like synthesized tone, not a sampled acoustic piano.
+## Same chords, different sound
 
-For local hosting, optionally run `python3 -m http.server 8768` and open http://localhost:8768.
+Choose **Piano** to hear the harmony clearly, or **Supersaw** to audition a wider synth sound. Changing the sound keeps the same chord voicings.
+
+![F minor with Supersaw selected and an Fm, Db, Ab, Eb progression in the chord history](docs/supersaw-chords.png)
+
+### Start with these progressions
+
+In **F minor**, the six keys give you:
+
+| Key | Chord | Scale degree |
+| --- | --- | --- |
+| **1** | Fm | i |
+| **2** | D♭ | VI |
+| **3** | A♭ | III |
+| **4** | E♭ | VII |
+| **5** | B♭m | iv |
+| **6** | Cm | v |
+
+Try **1 → 2 → 3 → 4**, then **1 → 3 → 4 → 2**. Hold some chords longer to change the feel. The Key selector transposes all six buttons together.
+
+## Controls
+
+| Control | What it does |
+| --- | --- |
+| **1–6 / chord buttons** | Hold to play; release to fade |
+| **Sound** | Piano-like synthesis or seven-voice stereo supersaw |
+| **Key** | E, F, F♯, G, or D minor |
+| **Low root** | Adds a lower root beneath the upper chord voicing |
+| **Volume** | Adjusts the overall output |
+| **Esc / Stop all** | Releases all active notes |
+| **Your chord order** | Shows your last 24 chord presses |
+| **Clear order** | Empties the chord history |
+
+History records **order only**, not audio or timing, and resets on reload. The tool does not connect to a DAW or export MIDI.
+
+## Under the hood
+
+The app is a **single HTML file** containing its CSS and JavaScript. Web Audio oscillators generate every note locally: no sample downloads, libraries, analytics, or backend. The piano is a synthesized piano-like tone, not a sampled acoustic piano.
+
+To serve it locally instead of opening the file directly:
+
+```sh
+python3 -m http.server 8768
+```
+
+Then open [localhost:8768](http://localhost:8768). This address works on your own computer; send friends the ZIP or repository link.
