@@ -2,7 +2,7 @@
 
 **Find a chord progression by ear—one key per chord.** Hold number keys **1–7** to audition chords, switch between piano and supersaw, and try different orders without learning keyboard fingerings first.
 
-![Chord explorer with grouped controls, visible hotkey keycaps, seven chord pads, and a live piano](docs/clean-interface-v3.jpg)
+![Chord explorer playing a latched E minor first inversion, with its chord pad and E2, G4, B4, E5 piano keys highlighted](docs/active-notes-preview.jpg)
 
 ## Try it in 30 seconds
 
