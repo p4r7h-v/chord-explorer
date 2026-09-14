@@ -1,200 +1,469 @@
-// UI state, keyboard input, and visual feedback.
+// Progression discovery, transport, and performance UI. Audio stays in audio.js.
 (() => {
   const $ = (id) => document.getElementById(id);
-  const { chordDefinitions, getNoteName } = ChordTheory;
-  let active = new Map(),
-    order = [],
-    selected = 0;
-  const chordVoicings = chordDefinitions.map(() => ({
-    inv: 0,
-    oct: 0,
-    spread: false,
-  }));
+  const theory = ChordTheory;
+  const shortlist = [
+    "U01",
+    "U02",
+    "D04",
+    "D08",
+    "D18",
+    "V01",
+    "V02",
+    "V03",
+    "V04",
+    "V06",
+    "V07",
+    "V10",
+  ];
+  const moodGroups = {
+    Epic: ["epic", "expansive", "sweeping", "grandeur", "bold", "anthemic"],
+    Dark: ["dark", "brooding", "ominous", "uncanny"],
+    Hopeful: ["hopeful", "uplifting", "lift", "bright release", "triumphant"],
+    Dreamy: ["atmospheric", "floating", "spacious", "mysterious", "suspended"],
+    Tender: [
+      "wistful",
+      "melancholy",
+      "bittersweet",
+      "tender",
+      "nostalgic",
+      "intimate",
+    ],
+    Tense: [
+      "tense",
+      "urgency",
+      "anticipation",
+      "anticipatory",
+      "expectant",
+      "unresolved",
+    ],
+    Warm: ["warm", "mellow", "grounded", "settled", "satisfying"],
+  };
+  let favorites = new Set();
+  try {
+    favorites = new Set(
+      JSON.parse(localStorage.getItem("chord-favorites") || "[]"),
+    );
+  } catch {}
+  let collection = "cinematic",
+    mood = "",
+    current = ProgressionLibrary.find((p) => p.id === "U01");
+  let free = false,
+    selected = 0,
+    looping = false,
+    timer,
+    generation = 0;
+  let nextTime = 0,
+    pending = null;
+  const active = new Map(),
+    shapes = new Map(),
+    pins = {};
   const root = () => +$("root").value;
-  const getChordName = (i) => ChordTheory.getChordName(i, root());
-  const getChordPitches = (i) =>
-    ChordTheory.getChordPitches(i, root(), chordVoicings[i]);
-  const getVoicingLabel = (i) => ChordTheory.getVoicingLabel(chordVoicings[i]);
-  function renderChordPads() {
-    $("chords").replaceChildren(
-      ...chordDefinitions.map((d, i) => {
-        let b = document.createElement("button");
-        b.className = "chord";
-        b.dataset.index = i;
-        b.setAttribute("aria-label", `${i + 1}: ${getChordName(i)}`);
-        b.innerHTML = `<span class="key">${i + 1}</span><span class="roman">${d.degree}</span><strong class="name">${getChordName(i)}</strong><span class="notes">${getChordPitches(i).map(getNoteName).join(" · ")}<br>${getVoicingLabel(i)}</span>`;
-        b.onpointerdown = (e) => {
-          e.preventDefault();
-          b.setPointerCapture(e.pointerId);
-          play(i, "pointer" + e.pointerId);
-        };
-        b.onpointerup = (e) => release("pointer" + e.pointerId);
-        b.onpointercancel = (e) => release("pointer" + e.pointerId);
-        b.onkeydown = (e) => {
-          if (e.code === "Enter") {
-            e.preventDefault();
-            if (!e.repeat) play(i, "button" + i);
-          }
-        };
-        b.onkeyup = (e) => {
-          if (e.code === "Enter") {
-            e.preventDefault();
-            release("button" + i);
-          }
-        };
-        return b;
+  const symbols = () =>
+    free
+      ? ["i", "ii°", "bIII", "iv", "v", "bVI", "bVII"]
+      : current.progression.split("–");
+  const chords = () => symbols().map(theory.parse);
+  const shapeKey = (i) => (free ? "free" : current.id) + ":" + i;
+  function shape(i) {
+    const key = shapeKey(i);
+    if (!shapes.has(key)) shapes.set(key, { inv: 0, oct: 0, spread: false });
+    return shapes.get(key);
+  }
+  const name = (i) => theory.chordName(chords()[i], root());
+  const pitches = (i) => theory.pitches(chords()[i], root(), shape(i));
+  const duration = () =>
+    (60000 / Math.max(40, Math.min(240, +$("tempo").value || 140))) *
+    +$("beats").value;
+  const pretty = (s) => s.replaceAll("b", "♭");
+  function filtered() {
+    const query = $("search").value.toLowerCase();
+    return ProgressionLibrary.filter(
+      (p) =>
+        (collection === "all" ||
+          (collection === "start"
+            ? shortlist.includes(p.id)
+            : collection === "cinematic"
+              ? p.collection === "cinematic"
+              : favorites.has(p.id))) &&
+        (!mood || p.tags.some((tag) => moodGroups[mood].includes(tag))) &&
+        `${p.name} ${p.tags.join(" ")} ${p.progression} ${p.id}`
+          .toLowerCase()
+          .includes(query),
+    );
+  }
+  function renderLibrary() {
+    const list = filtered();
+    $("count").textContent = list.length;
+    $("library").replaceChildren(
+      ...list.map((p) => {
+        const button = document.createElement("button");
+        button.className = "library-item";
+        button.setAttribute(
+          "aria-pressed",
+          String(!free && current.id === p.id),
+        );
+        button.innerHTML = `<span><strong>${p.name}</strong><small>${p.tags.join(" · ")}</small></span><span class="formula">${pretty(p.progression)}</span>${favorites.has(p.id) ? '<span class="star">★</span>' : ""}`;
+        button.onclick = () => choose(p);
+        return button;
       }),
     );
-    updateSelectionDisplay();
-  }
-  function updateLabels() {
+    if (!list.length)
+      $("library").textContent =
+        "No matches. Try another feeling or collection.";
     document
-      .querySelectorAll(".chord")
-      .forEach(
-        (b, i) =>
-          (b.querySelector(".notes").innerHTML =
-            getChordPitches(i).map(getNoteName).join(" · ") +
-            "<br>" +
-            getVoicingLabel(i)),
+      .querySelectorAll("[data-collection]")
+      .forEach((b) =>
+        b.setAttribute(
+          "aria-pressed",
+          String(b.dataset.collection === collection),
+        ),
       );
-    updateSelectionDisplay();
+    document
+      .querySelectorAll("[data-mood]")
+      .forEach((b) =>
+        b.setAttribute("aria-pressed", String(b.dataset.mood === mood)),
+      );
   }
-  function adjust(kind, delta = 0) {
-    let v = chordVoicings[selected];
-    if (kind === "inv") v.inv = (v.inv + delta + 3) % 3;
-    if (kind === "oct") v.oct = Math.max(-2, Math.min(2, v.oct + delta));
-    if (kind === "spread") v.spread = !v.spread;
-    retuneSelectedChord();
-    updateLabels();
+  function load(p) {
+    releaseAll();
+    current = p;
+    free = false;
+    selected = 0;
+    render();
   }
-  function retuneSelectedChord() {
-    let tokens = [...active.entries()]
-      .filter(([t, e]) => e.i === selected)
-      .map(([t]) => t);
-    for (let t of tokens) {
-      release(t);
-      play(selected, t, false);
+  function choose(p) {
+    if (looping) {
+      pending = p;
+      $("status").textContent = `Next chord boundary → ${p.name}`;
+    } else load(p);
+  }
+  function browse(delta) {
+    const list = filtered();
+    if (!list.length) return;
+    let index = list.findIndex((p) => p.id === (pending || current).id);
+    choose(list[(index + delta + list.length) % list.length]);
+  }
+  function render() {
+    $("title").textContent = free ? "Play your own" : current.name;
+    $("evidence").textContent = free
+      ? "NATURAL MINOR · 7 DEGREES"
+      : current.evidence;
+    $("feeling").textContent = free
+      ? "Hold a number. Follow your ear."
+      : current.tags.join(" / ");
+    $("arc").textContent = free ? "" : current.arc || "";
+    $("favorite").hidden = free;
+    $("favorite").textContent = favorites.has(current.id) ? "★" : "☆";
+    $("favorite").setAttribute(
+      "aria-pressed",
+      String(favorites.has(current.id)),
+    );
+    $("explore").setAttribute("aria-pressed", String(!free));
+    $("free").setAttribute("aria-pressed", String(free));
+    $("play").disabled = free;
+    $("source").replaceChildren(document.createTextNode(current.detail + " "));
+    if (current.source) {
+      const a = document.createElement("a");
+      a.href = current.source;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.textContent = "Read source ↗";
+      $("source").append(a);
     }
+    $("steps").replaceChildren(
+      ...chords().map((chord, i) => {
+        const button = document.createElement("button");
+        button.className = "step";
+        button.dataset.step = i;
+        button.innerHTML = `<kbd>${i + 1}</kbd><small>${pretty(chord.symbol)}</small><strong>${name(i)}</strong>`;
+        button.onpointerdown = (e) => {
+          e.preventDefault();
+          button.setPointerCapture(e.pointerId);
+          pause();
+          releaseAll();
+          play(i, "pointer" + e.pointerId);
+        };
+        button.onpointerup = (e) => release("pointer" + e.pointerId);
+        button.onpointercancel = (e) => release("pointer" + e.pointerId);
+        button.onkeydown = (e) => {
+          if (e.key === "Enter" && !e.repeat) {
+            e.preventDefault();
+            pause();
+            releaseAll();
+            play(i, "enter");
+          }
+        };
+        button.onkeyup = (e) => {
+          if (e.key === "Enter") release("enter");
+        };
+        return button;
+      }),
+    );
+    renderLibrary();
+    feedback();
   }
-  function latch() {
-    if (active.has("latch")) release("latch");
-    else play(selected, "latch", false);
-    updateSelectionDisplay();
-  }
-  // A token identifies each held keyboard key, pointer, or latched chord.
-  async function play(i, token, remember = true) {
-    if (active.has(token)) return;
-    if (selected !== i && active.has("latch")) release("latch");
+  async function play(i, token) {
+    if (i >= chords().length || active.has(token)) return;
     selected = i;
-    updateSelectionDisplay();
-    let entry = { i, voices: [] };
+    const entry = { i, voices: [], notes: pitches(i), bass: [] };
+    if ($("bass").checked)
+      entry.bass = [36 + ((root() + (chords()[i].bass ?? chords()[i].r)) % 12)];
     active.set(token, entry);
+    feedback();
     try {
       await ChordAudio.initializeAudio(+$("volume").value);
       if (active.get(token) !== entry) return;
-      const t = ChordAudio.currentTime();
-      let pitches = getChordPitches(i);
-      if ($("bass").checked)
-        pitches.unshift(36 + root() + chordDefinitions[i].r);
-      entry.voices = pitches.map((n, j) =>
-        ChordAudio.createVoice(n, t + j * 0.003, $("sound").value),
+      entry.voices = [...entry.bass, ...entry.notes].map((n) =>
+        ChordAudio.createVoice(n, ChordAudio.currentTime(), $("sound").value),
       );
-      if (remember) order.push(getChordName(i) + " · " + getVoicingLabel(i));
-      order = order.slice(-24);
-      $("history").replaceChildren(
-        ...order.map((x) => {
-          let s = document.createElement("span");
-          s.className = "chip";
-          s.textContent = x;
-          return s;
-        }),
-      );
-      $("status").textContent =
-        `Playing ${getChordName(i)} · ${pitches.map(getNoteName).join(" / ")}`;
-      updateSelectionDisplay();
-    } catch (e) {
+      $("status").textContent = `Playing ${name(i)}`;
+    } catch {
       active.delete(token);
+      pause();
+      feedback();
       $("status").textContent =
-        "Audio could not start. Click a chord and try again.";
+        "Audio could not start. Click a chord to retry.";
     }
   }
   function release(token) {
-    let entry = active.get(token);
+    const entry = active.get(token);
     if (!entry) return;
     active.delete(token);
     ChordAudio.releaseVoices(entry.voices);
-    updateSelectionDisplay();
-    if (!active.size) $("status").textContent = "Ready for the next chord.";
+    feedback();
   }
-  // Visual keyboard and sounding-note feedback.
+  function releaseAll() {
+    [...active.keys()].forEach(release);
+  }
+  function pause() {
+    looping = false;
+    generation++;
+    clearTimeout(timer);
+    pending = null;
+    release("loop");
+    transportFeedback();
+  }
+  function stop() {
+    pause();
+    releaseAll();
+    $("status").textContent = "Stopped";
+  }
+  function transportFeedback() {
+    $("play").innerHTML =
+      `<kbd>Space</kbd> ${looping ? "Pause loop" : "Play loop"}`;
+    $("play").setAttribute("aria-pressed", String(looping));
+    $("position").textContent = looping
+      ? `${selected + 1} / ${chords().length}`
+      : "";
+  }
+  async function toggleLoop() {
+    if (free) {
+      hold();
+      return;
+    }
+    if (looping) {
+      pause();
+      return;
+    }
+    releaseAll();
+    looping = true;
+    const run = ++generation;
+    try {
+      await ChordAudio.initializeAudio(+$("volume").value);
+    } catch {
+      pause();
+      $("status").textContent = "Click a chord to enable audio.";
+      return;
+    }
+    if (!looping || run !== generation) return;
+    let step = 0;
+    nextTime = performance.now();
+    function tick() {
+      if (!looping || run !== generation) return;
+      releaseAll();
+      if (pending) {
+        const p = pending;
+        pending = null;
+        load(p);
+        step = 0;
+      }
+      play(step, "loop");
+      transportFeedback();
+      step = (step + 1) % chords().length;
+      nextTime = Math.max(nextTime, performance.now() - 50) + duration();
+      timer = setTimeout(tick, Math.max(0, nextTime - performance.now()));
+    }
+    tick();
+  }
+  function hold() {
+    pause();
+    if (active.has("hold")) release("hold");
+    else {
+      releaseAll();
+      play(selected, "hold");
+    }
+  }
+  function stepThrough(delta) {
+    pause();
+    releaseAll();
+    play((selected + delta + chords().length) % chords().length, "hold");
+  }
+  function retune() {
+    const entries = [...active].map(([token, e]) => [token, e.i]);
+    releaseAll();
+    entries.forEach(([token, i]) => play(i, token));
+    feedback();
+  }
+  function adjust(kind, delta) {
+    const v = shape(selected);
+    if (kind === "inv")
+      v.inv =
+        (v.inv + delta + theory.intervals[chords()[selected].quality].length) %
+        theory.intervals[chords()[selected].quality].length;
+    if (kind === "oct") v.oct = Math.max(-2, Math.min(2, v.oct + delta));
+    if (kind === "spread") v.spread = !v.spread;
+    retune();
+  }
+  function feedback() {
+    const notes = new Set(),
+      bass = new Set();
+    active.forEach((e) => {
+      e.notes.forEach((n) => notes.add(n));
+      e.bass.forEach((n) => bass.add(n));
+    });
+    document.querySelectorAll(".pkey").forEach((k) => {
+      k.classList.toggle("lit", notes.has(+k.dataset.midi));
+      k.classList.toggle("low", bass.has(+k.dataset.midi));
+    });
+    const all = [...new Set([...notes, ...bass])]
+      .sort((a, b) => a - b)
+      .map(theory.noteName)
+      .join(" · ");
+    $("piano-notes").textContent = all || "No notes held";
+    $("piano").setAttribute(
+      "aria-label",
+      "Piano keyboard. " + (all || "No notes held"),
+    );
+    document.querySelectorAll("[data-step]").forEach((b) => {
+      b.classList.toggle("selected", +b.dataset.step === selected);
+      b.classList.toggle(
+        "active",
+        [...active.values()].some((e) => e.i === +b.dataset.step),
+      );
+    });
+    const v = shape(selected);
+    $("selection").textContent =
+      `${name(selected)} · ${["Root", "1st inv", "2nd inv", "3rd inv"][v.inv]} · Oct ${v.oct > 0 ? "+" : ""}${v.oct}`;
+    $("spread").setAttribute("aria-pressed", String(v.spread));
+    $("hold").textContent = active.has("hold") ? "Release" : "Hold";
+    $("hold").setAttribute("aria-pressed", String(active.has("hold")));
+  }
   function buildPiano() {
-    let whites = [];
-    for (let n = 24; n <= 108; n++)
-      if (![1, 3, 6, 8, 10].includes(n % 12)) whites.push(n);
-    let width = 100 / whites.length;
+    const whiteCount = Array.from({ length: 85 }, (_, i) => i + 24).filter(
+      (n) => ![1, 3, 6, 8, 10].includes(n % 12),
+    ).length;
+    const width = 100 / whiteCount;
     let count = 0;
     for (let n = 24; n <= 108; n++) {
-      let black = [1, 3, 6, 8, 10].includes(n % 12),
+      const black = [1, 3, 6, 8, 10].includes(n % 12),
         key = document.createElement("div");
       key.className = "pkey" + (black ? " black" : "");
       key.dataset.midi = n;
-      key.getChordName = getNoteName(n);
-      key.textContent = getNoteName(n);
-      key.style.left =
-        (black ? count * width - width * 0.31 : count * width) + "%";
-      key.style.width = (black ? width * 0.62 : width) + "%";
+      key.textContent = theory.noteName(n);
+      key.style.left = count * width - (black ? width * 0.31 : 0) + "%";
+      key.style.width = width * (black ? 0.62 : 1) + "%";
       $("piano").append(key);
       if (!black) count++;
     }
   }
-  function updatePianoHighlights() {
-    let upper = new Set(),
-      bass = new Set();
-    for (let entry of active.values()) {
-      getChordPitches(entry.i).forEach((n) => upper.add(n));
-      if ($("bass").checked)
-        bass.add(36 + root() + chordDefinitions[entry.i].r);
+  function saveFavorites() {
+    try {
+      localStorage.setItem("chord-favorites", JSON.stringify([...favorites]));
+    } catch {
+      $("status").textContent =
+        "Saved for this session; browser storage unavailable.";
     }
-    document.querySelectorAll(".pkey").forEach((k) => {
-      let n = +k.dataset.midi;
-      k.classList.toggle("lit", upper.has(n));
-      k.classList.toggle("low", bass.has(n));
-    });
-    let notes = [...new Set([...upper, ...bass])].sort((a, b) => a - b);
-    $("piano-notes").textContent = notes.length
-      ? notes.map(getNoteName).join(" · ")
-      : "No notes held";
-    $("piano").setAttribute(
-      "aria-label",
-      "Piano keyboard. " +
-        (notes.length
-          ? "Playing " + notes.map(getNoteName).join(", ")
-          : "No notes held."),
-    );
   }
-  function updateSelectionDisplay() {
-    updatePianoHighlights();
-    document.querySelectorAll(".chord").forEach((b, i) => {
-      b.classList.toggle(
-        "active",
-        [...active.values()].some((e) => e.i === i),
-      );
-      b.classList.toggle("selected", i === selected);
-    });
-    $("selection").textContent =
-      getChordName(selected) + " / " + getVoicingLabel(selected);
-    $("latch").innerHTML =
-      "<kbd>Space</kbd> " + (active.has("latch") ? "Release" : "Hold");
-    $("latch").setAttribute("aria-pressed", String(active.has("latch")));
-    $("spread").setAttribute(
-      "aria-pressed",
-      String(chordVoicings[selected].spread),
-    );
-  }
-  function stop() {
-    [...active.keys()].forEach(release);
-  }
-  // Ignore shortcuts while editing controls or using browser modifier keys.
+  $("root").replaceChildren(
+    ...theory.names.map((n, i) => new Option(n, i, false, i === 4)),
+  );
+  $("moods").replaceChildren(
+    ...["", ...Object.keys(moodGroups)].map((m) => {
+      const b = document.createElement("button");
+      b.textContent = m || "Any feeling";
+      b.dataset.mood = m;
+      b.onclick = () => {
+        mood = m;
+        renderLibrary();
+      };
+      return b;
+    }),
+  );
+  $("collections").onclick = (e) => {
+    const b = e.target.closest("[data-collection]");
+    if (b) {
+      collection = b.dataset.collection;
+      renderLibrary();
+    }
+  };
+  $("search").oninput = renderLibrary;
+  $("favorite").onclick = () => {
+    favorites.has(current.id)
+      ? favorites.delete(current.id)
+      : favorites.add(current.id);
+    saveFavorites();
+    render();
+  };
+  $("explore").onclick = () => {
+    stop();
+    free = false;
+    selected = 0;
+    render();
+  };
+  $("free").onclick = () => {
+    stop();
+    free = true;
+    selected = 0;
+    render();
+  };
+  $("play").onclick = toggleLoop;
+  $("stop").onclick = stop;
+  $("previous").onclick = () => browse(-1);
+  $("next").onclick = () => browse(1);
+  $("hold").onclick = hold;
+  $("invdown").onclick = () => adjust("inv", -1);
+  $("invup").onclick = () => adjust("inv", 1);
+  $("octdown").onclick = () => adjust("oct", -1);
+  $("octup").onclick = () => adjust("oct", 1);
+  $("spread").onclick = () => adjust("spread");
+  $("root").onchange = () => {
+    stop();
+    render();
+  };
+  $("sound").onchange = retune;
+  $("bass").onchange = retune;
+  $("volume").oninput = () => ChordAudio.setVolume(+$("volume").value);
+  $("tempo").onchange = () => {
+    $("tempo").value = Math.max(40, Math.min(240, +$("tempo").value || 140));
+  };
+  ["a", "b"].forEach((slot) => {
+    $("pin-" + slot).onclick = () => {
+      if (free) return;
+      pins[slot] = {
+        id: current.id,
+        shapes: chords().map((_, i) => ({ ...shape(i) })),
+      };
+      $("recall-" + slot).disabled = false;
+      $("recall-" + slot).textContent =
+        slot.toUpperCase() + " · " + current.name;
+    };
+    $("recall-" + slot).onclick = () => {
+      const pin = pins[slot];
+      pin.shapes.forEach((v, i) => shapes.set(pin.id + ":" + i, { ...v }));
+      choose(ProgressionLibrary.find((p) => p.id === pin.id));
+    };
+  });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       stop();
@@ -207,27 +476,39 @@
       /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)
     )
       return;
-    let k = e.key.toLowerCase();
-    if (/^[1-7]$/.test(k)) {
+    const key = e.key.toLowerCase();
+    if (/^[1-9]$/.test(key)) {
       e.preventDefault();
-      if (!e.repeat) play(+k - 1, e.code);
+      if (!e.repeat && +key <= chords().length) {
+        pause();
+        release("hold");
+        play(+key - 1, e.code);
+      }
       return;
     }
-    if (["h", "l", "j", "k", "o", "b", "p", " "].includes(k)) {
-      e.preventDefault();
-      if (e.repeat) return;
-      if (k === "h" || k === "l") adjust("inv", k === "h" ? -1 : 1);
-      if (k === "j" || k === "k") adjust("oct", k === "j" ? -1 : 1);
-      if (k === "o") adjust("spread");
-      if (k === " ") latch();
-      if (k === "b") {
-        $("bass").checked = !$("bass").checked;
-        retuneSelectedChord();
-      }
-      if (k === "p") {
+    const actions = {
+      " ": toggleLoop,
+      arrowleft: () => browse(-1),
+      arrowright: () => browse(1),
+      "[": () => stepThrough(-1),
+      "]": () => stepThrough(1),
+      h: () => adjust("inv", -1),
+      l: () => adjust("inv", 1),
+      j: () => adjust("oct", -1),
+      k: () => adjust("oct", 1),
+      o: () => adjust("spread"),
+      p: () => {
         $("sound").value = $("sound").value === "piano" ? "supersaw" : "piano";
-        retuneSelectedChord();
-      }
+        retune();
+      },
+      b: () => {
+        $("bass").checked = !$("bass").checked;
+        retune();
+      },
+    };
+    if (actions[key]) {
+      e.preventDefault();
+      if (!e.repeat) actions[key]();
     }
   });
   document.addEventListener("keyup", (e) => release(e.code));
@@ -235,40 +516,6 @@
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) stop();
   });
-  $("invdown").onclick = () => adjust("inv", -1);
-  $("invup").onclick = () => adjust("inv", 1);
-  $("octdown").onclick = () => adjust("oct", -1);
-  $("octup").onclick = () => adjust("oct", 1);
-  $("spread").onclick = () => adjust("spread");
-  $("latch").onclick = latch;
-  $("bass").onchange = retuneSelectedChord;
-  $("stop").onclick = stop;
-  $("clear").onclick = () => {
-    order = [];
-    $("history").replaceChildren();
-  };
-  $("root").onchange = () => {
-    stop();
-    renderChordPads();
-    $("status").textContent =
-      "Key changed. Earlier chord names remain in your history.";
-  };
-  $("sound").onchange = () => {
-    stop();
-    $("status").textContent =
-      $("sound").value === "supersaw"
-        ? "Supersaw ready. Hold a chord to hear it sustain."
-        : "Piano ready.";
-  };
-  $("volume").oninput = () => ChordAudio.setVolume(+$("volume").value);
   buildPiano();
-  renderChordPads();
-  $("history").replaceChildren(
-    ...order.map((x) => {
-      let s = document.createElement("span");
-      s.className = "chip";
-      s.textContent = x;
-      return s;
-    }),
-  );
+  render();
 })();

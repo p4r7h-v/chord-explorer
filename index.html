@@ -8,120 +8,173 @@
   </head>
   <body>
     <header>
-      <h1>Chord<span> / </span>Explorer</h1>
-      <details>
-        <summary>How to play</summary>
-        <div class="help">
+      <div>
+        <span class="eyebrow">FIND THE FEELING</span>
+        <h1>Chord <em>/</em> Explorer</h1>
+      </div>
+      <details class="help">
+        <summary>⌨ Shortcuts</summary>
+        <div>
           <p>
-            <b>Play:</b> hold keys 1–7 or a chord pad. Release to stop. Try
-            <b>1 → 6 → 3 → 7</b>.
+            <kbd>Space</kbd> Play / pause loop · <kbd>←</kbd><kbd>→</kbd> Browse
           </p>
           <p>
-            <b>Shape:</b> the last chord you played stays selected. H/L changes
-            inversion; J/K changes octave. O spreads the notes. Each chord
-            remembers its shape.
+            <kbd>1–9</kbd> Hold a chord · <kbd>[</kbd><kbd>]</kbd> Step through
           </p>
           <p>
-            <b>Hold:</b> Space latches the selected chord so you can edit it
-            hands-free. Esc stops everything.
+            <kbd>H</kbd><kbd>L</kbd> Inversion · <kbd>J</kbd><kbd>K</kbd> Octave
           </p>
           <p>
-            <b>Sound:</b> P switches piano/supersaw. B toggles the low root.
-            Click outside a dropdown before using shortcuts.
+            <kbd>O</kbd> Spread · <kbd>P</kbd> Sound · <kbd>B</kbd> Bass ·
+            <kbd>Esc</kbd> Stop
           </p>
           <p>
-            The trail remembers order, not timing. Reload resets this session.
-            All audio is synthesized locally.
+            Numbers play steps in Explore, scale degrees in Free play. Click
+            outside input fields to use shortcuts.
           </p>
         </div>
       </details>
     </header>
-    <div class="setup">
-      <div class="field">
-        <label class="caption" for="root">Key</label
-        ><select id="root">
-          <option value="4" selected>E minor</option>
-          <option value="5">F minor</option>
-          <option value="6">F♯ minor</option>
-          <option value="7">G minor</option>
-          <option value="2">D minor</option>
-        </select>
-      </div>
-      <div class="field">
-        <label class="caption" for="sound">Sound <kbd>P</kbd></label
-        ><select id="sound">
-          <option value="piano">Piano</option>
-          <option value="supersaw" selected>Supersaw</option>
-        </select>
-      </div>
-      <div class="field">
-        <span class="caption">Bass <kbd>B</kbd></span
-        ><label><input id="bass" type="checkbox" checked />Low root</label>
-      </div>
-      <div class="field volume">
-        <label class="caption" for="volume">Volume</label
-        ><input
-          id="volume"
-          aria-label="Volume"
-          type="range"
-          min="0"
-          max="100"
-          value="100"
+    <main>
+      <aside>
+        <div class="library-heading">
+          <h2>Find a progression</h2>
+          <span id="count"></span>
+        </div>
+        <input
+          id="search"
+          type="search"
+          placeholder="Search feeling, name, or chords…"
+          aria-label="Search progressions"
         />
-      </div>
-      <button id="stop"><kbd>Esc</kbd> Stop</button>
-    </div>
-    <div class="section-head">
-      <span class="section-title">01 / Play</span
-      ><span class="hint">Hold a number key or a pad</span>
-    </div>
-    <div id="chords" class="chords"></div>
-    <div class="shape-bar">
-      <div class="selected-info">
-        <span class="section-title">02 / Shape selected chord</span>
-        <p id="selection" aria-live="polite"></p>
-      </div>
-      <div class="toolgroup">
-        <span>Inversion</span
-        ><button id="invdown" aria-label="Previous inversion (H)">
-          <kbd>H</kbd> ←</button
-        ><button id="invup" aria-label="Next inversion (L)">
-          <kbd>L</kbd> →
-        </button>
-      </div>
-      <div class="toolgroup">
-        <span>Octave</span
-        ><button id="octdown" aria-label="Lower octave (J)">
-          <kbd>J</kbd> −</button
-        ><button id="octup" aria-label="Raise octave (K)">
-          <kbd>K</kbd> +
-        </button>
-      </div>
-      <button id="spread"><kbd>O</kbd> Spread</button
-      ><button id="latch"><kbd>Space</kbd> Hold</button>
-    </div>
-    <section class="piano-panel" aria-label="Live piano visualization">
-      <div class="piano-top">
-        <p id="piano-notes" role="status">No notes held</p>
-        <span class="legend"><i></i>Chord <i class="bass"></i>Bass</span>
-      </div>
-      <div class="piano-scroll">
+        <div class="tabs" id="collections">
+          <button data-collection="cinematic" aria-pressed="true">
+            Cinema 9
+          </button>
+          <button data-collection="start">For you</button>
+          <button data-collection="all">All 39</button>
+          <button data-collection="favorites">★ Saved</button>
+        </div>
+        <div id="moods" class="moods" aria-label="Mood filters"></div>
         <div
-          id="piano"
-          class="piano"
-          role="img"
-          aria-label="Piano keyboard"
+          id="library"
+          class="library"
+          aria-label="Progression library"
         ></div>
-      </div>
-    </section>
-    <div class="history-row">
-      <span class="section-title">Trail</span>
-      <div id="history" class="history" aria-label="Recent chord order"></div>
-      <button id="clear">Clear</button>
-    </div>
-    <div id="status" role="status">Ready to play</div>
+        <small class="library-note"
+          >Feelings are starting points. Trust your ears.</small
+        >
+      </aside>
+      <section class="workspace">
+        <div class="setup">
+          <label>Tonic<select id="root"></select></label>
+          <label
+            >Sound <kbd>P</kbd
+            ><select id="sound">
+              <option value="piano">Piano</option>
+              <option value="supersaw" selected>Supersaw</option>
+            </select></label
+          >
+          <label
+            >BPM<input id="tempo" type="number" min="40" max="240" value="140"
+          /></label>
+          <label
+            >Beats / chord<select id="beats">
+              <option value="2">2</option>
+              <option value="4" selected>4</option>
+              <option value="8">8</option>
+            </select></label
+          >
+          <label class="volume"
+            >Volume<input
+              id="volume"
+              type="range"
+              min="0"
+              max="100"
+              value="100"
+          /></label>
+        </div>
+        <div class="mode-row">
+          <div class="tabs">
+            <button id="explore" aria-pressed="true">Explore</button
+            ><button id="free">Free play</button>
+          </div>
+          <label class="bass-label"
+            ><input id="bass" type="checkbox" checked /> Low root
+            <kbd>B</kbd></label
+          >
+        </div>
+        <div class="now-heading">
+          <div>
+            <span id="evidence" class="eyebrow"></span>
+            <h2 id="title"></h2>
+            <p id="feeling"></p>
+            <p id="arc"></p>
+          </div>
+          <button id="favorite" aria-label="Save progression">☆</button>
+        </div>
+        <div id="steps" class="steps"></div>
+        <div class="transport">
+          <button id="previous" aria-label="Previous progression">←</button
+          ><button id="play" class="primary"><kbd>Space</kbd> Play loop</button
+          ><button id="next" aria-label="Next progression">→</button
+          ><button id="stop"><kbd>Esc</kbd> Stop</button
+          ><span id="position"></span>
+        </div>
+        <div class="compare">
+          <span class="eyebrow">COMPARE</span><button id="pin-a">Pin A</button
+          ><button id="pin-b">Pin B</button
+          ><button id="recall-a" disabled>A · Empty</button
+          ><button id="recall-b" disabled>B · Empty</button>
+        </div>
+        <div class="shape">
+          <div>
+            <span class="eyebrow">SHAPE THIS CHORD</span
+            ><strong id="selection"></strong>
+          </div>
+          <div class="shape-buttons">
+            <button id="invdown" title="Previous inversion">
+              <kbd>H</kbd> Inv −</button
+            ><button id="invup" title="Next inversion">
+              <kbd>L</kbd> Inv +</button
+            ><button id="octdown"><kbd>J</kbd> Oct −</button
+            ><button id="octup"><kbd>K</kbd> Oct +</button
+            ><button id="spread" aria-pressed="false">
+              <kbd>O</kbd> Spread</button
+            ><button id="hold">Hold</button>
+          </div>
+        </div>
+        <section class="piano-panel" aria-label="Live piano visualization">
+          <div class="piano-top">
+            <p id="piano-notes" role="status">No notes held</p>
+            <span><i></i> Chord <i class="bass"></i> Bass</span>
+          </div>
+          <div class="piano-scroll">
+            <div
+              id="piano"
+              class="piano"
+              role="img"
+              aria-label="Piano keyboard"
+            ></div>
+          </div>
+        </section>
+        <footer>
+          <span id="status" role="status">Ready to explore</span>
+          <details>
+            <summary>About this pattern</summary>
+            <p id="source"></p>
+            <p>
+              ♭ degrees are measured against major: i–♭III in E is Em–G. Mood
+              tags are editorial, not fixed emotional rules. Audio is
+              synthesized locally.
+            </p>
+          </details>
+        </footer>
+      </section>
+    </main>
     <script defer src="js/chords.js"></script>
     <script defer src="js/audio.js"></script>
+    <script defer src="js/progressions.js"></script>
     <script defer src="js/app.js"></script>
   </body>
 </html>
