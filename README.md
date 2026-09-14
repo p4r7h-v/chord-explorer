@@ -2,7 +2,7 @@
 
 **Find a chord progression by ear—one key per chord.** Hold number keys **1–7** to audition chords, switch between piano and supersaw, and try different orders without learning keyboard fingerings first.
 
-![Compact chord explorer with seven scale-degree buttons, inversion hotkeys, and a live piano showing E minor in first inversion](docs/keyboard-explorer-v2.jpg)
+![Chord explorer with grouped controls, visible hotkey keycaps, seven chord pads, and a live piano](docs/clean-interface-v3.jpg)
 
 ## Try it in 30 seconds
 
@@ -63,7 +63,20 @@ History records **order only**, not audio or timing, and resets on reload. The t
 
 ## Under the hood
 
-The app is a **single HTML file** containing its CSS and JavaScript. Web Audio oscillators generate every note locally: no sample downloads, libraries, analytics, or backend. The piano is a synthesized piano-like tone, not a sampled acoustic piano. Supersaw voices use randomized starting phases to reduce synchronized onset swells. Some detuned movement is intentional.
+The app uses plain HTML, CSS, and JavaScript with no framework or build step. Keep these files together when downloading or sharing:
+
+```text
+index.html       Page structure and accessible controls
+styles.css       Layout, colors, and responsive rules
+js/chords.js     Pure scale, inversion, and voicing calculations
+js/audio.js      Piano/supersaw synthesis and voice cleanup
+js/app.js        UI state, hotkeys, and piano visualization
+docs/            README screenshots
+```
+
+Scripts load in order with `defer`, so opening `index.html` directly still works. Chord and audio logic have no DOM dependencies; `app.js` connects them to the interface. To share, send the repository ZIP rather than only the HTML file.
+
+Web Audio generates every note locally, with no sample downloads, analytics, or backend. The piano is synthesized rather than sampled. Supersaw voices use randomized starting phases to reduce synchronized onset swells.
 
 To serve it locally instead of opening the file directly:
 

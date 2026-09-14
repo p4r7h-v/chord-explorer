@@ -1,39 +1,127 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chord Playground</title><style>
-*{box-sizing:border-box}body{margin:0;background:#11151d;color:#edf0f6;font:16px system-ui;padding:40px;max-width:1100px;margin:auto}h1{font-size:36px;margin:8px 0}p{color:#aeb8cc;line-height:1.6}.eyebrow{color:#aaadff;font-size:12px;letter-spacing:3px}header{margin-bottom:28px}.controls{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin:25px 0}select,button{font:inherit;color:inherit;background:#232b3b;border:1px solid #414d65;border-radius:12px;padding:12px}label{display:flex;align-items:center;gap:10px}input{accent-color:#a4a2ff}.chords{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.chord{min-height:165px;text-align:left;cursor:pointer;touch-action:none;user-select:none;transition:background .1s,transform .1s}.chord.selected{outline:2px solid #a4a2ff;outline-offset:2px}.chord.active{background:#6660bd;transform:translateY(2px);border-color:#d4ceff}.key{display:inline-block;background:#11151d80;border-radius:6px;padding:3px 9px;font-size:13px}.name{display:block;font-size:35px;margin:12px 0 3px}.notes{font-size:13px;color:#bbc5d9}.roman{float:right;color:#aaa9e4}.panel{margin-top:26px;border-top:1px solid #343e51;padding-top:20px}.history{min-height:54px;display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.chip{padding:9px 14px;border-radius:8px;background:#2b3448}.muted{font-size:13px;color:#9ca9bf}.status{color:#c8c1ff;min-height:24px}button:focus-visible{outline:3px solid #c8c1ff;outline-offset:3px}@media(max-width:600px){body{padding:22px}.chords{grid-template-columns:repeat(2,1fr)}h1{font-size:28px}}
-.piano-panel{margin:24px 0;padding:18px;background:#1b2230;border:1px solid #414d65;border-radius:14px}.piano-scroll{overflow-x:auto;padding:4px 0 10px}.piano{height:145px;position:relative;min-width:1000px}.pkey{position:absolute;border:1px solid #697183;border-radius:0 0 5px 5px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;font-size:10px;color:#4c5568;background:#e8edf6;height:140px;z-index:1}.pkey.black{height:88px;background:#242b38;color:#aeb8cc;z-index:2;border-color:#11151d}.pkey.lit{background:#aaa3ff;color:#151127;box-shadow:inset 0 -5px 0 #7869d3}.pkey.low{background:#63d9c0;color:#102c26}.piano-legend{font-size:13px;color:#bdc7da;line-height:1.6}.piano-legend b{color:#c0baff}.piano-legend em{font-style:normal;color:#63d9c0}/* Compact desktop instrument layout */
-body{max-width:1400px;padding:16px 22px;font-size:14px}header{margin-bottom:10px}h1{font-size:25px;margin:3px 0}header p{margin:6px 0;line-height:1.45}.eyebrow{font-size:10px;letter-spacing:2px}.controls{gap:12px;margin:10px 0}select,button{padding:7px 10px;border-radius:8px}label{gap:6px}#selection{margin:7px 0;min-height:18px}.status{min-height:18px}.piano-panel{margin:10px 0;padding:10px 12px}.piano-legend{font-size:11px;line-height:1.35}.piano-legend br{display:none}.piano-scroll{padding:0 0 3px}.piano{height:98px;min-width:0}.pkey{height:96px;font-size:8px;padding-bottom:5px}.pkey.black{height:59px;font-size:0}#piano-notes{margin:6px 0;font-size:12px}.chords{grid-template-columns:repeat(7,minmax(0,1fr));gap:9px}.chord{min-height:113px;padding:10px}.name{font-size:26px;margin:8px 0 4px}.notes{font-size:10px;line-height:1.45}.key{font-size:11px;padding:2px 6px}.roman{font-size:12px}.panel{margin-top:12px;padding-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.panel>b{font-size:12px}.history{min-height:30px;flex:1;min-width:180px;flex-wrap:nowrap;overflow-x:auto;margin:0;gap:5px}.chip{padding:5px 8px;white-space:nowrap;font-size:10px}.panel .muted{display:none}.panel #status{flex-basis:100%;margin:0;font-size:11px}#clear{font-size:12px}
-@media(max-width:760px){body{padding:12px}.chords{grid-template-columns:repeat(4,minmax(0,1fr))}.chord{min-height:95px}.pkey{font-size:6px}.controls{gap:7px}.name{font-size:23px}}
-@media(max-width:450px){.chords{grid-template-columns:repeat(3,minmax(0,1fr))}.piano{min-width:650px}header p{font-size:12px}}
-</style><header><div class="eyebrow">PIANO FIRST · SOUND DESIGN LATER</div><h1>Find the progression.</h1><p>Hold <b>1–7</b> to play scale degrees. Try <b>1 → 6 → 3 → 7</b>.<br><b>H / L</b> inversion · <b>J / K</b> octave · <b>Space</b> latch · <b>O</b> spread · <b>B</b> bass · <b>P</b> sound · <b>Esc</b> stop.</p></header>
-<div class="controls"><label>Key <select id="root"><option value="4" selected>E minor</option><option value="5">F minor</option><option value="6">F♯ minor</option><option value="7">G minor</option><option value="2">D minor</option></select></label><label>Sound <select id="sound"><option value="piano">Piano</option><option value="supersaw" selected>Supersaw</option></select></label><label>Volume <input id="volume" aria-label="Volume" type="range" min="0" max="100" value="55"></label><label><input id="bass" type="checkbox" checked>Low root</label><button id="stop">Stop all · Esc</button></div>
-<p id="selection" class="status" aria-live="polite"></p><div class="controls"><button id="invdown">H · Inversion −</button><button id="invup">L · Inversion +</button><button id="octdown">J · Octave −</button><button id="octup">K · Octave +</button><button id="spread">O · Spread</button><button id="latch">Space · Latch</button></div><section class="piano-panel" aria-label="Live piano visualization"><div class="piano-legend"><b>Purple: chord notes</b> · <em>Green: added low root</em> · Left = lower pitch · <br>Held or latched notes light up here. Inversions move chord notes above one another.</div><p id="piano-notes" class="status" role="status">Play a chord to see its notes.</p><div class="piano-scroll"><div id="piano" class="piano" role="img" aria-label="Piano keyboard, C1 through C8"></div></div></section><div id="chords" class="chords"></div><div class="panel"><b>Your chord order</b><div id="history" class="history" aria-label="Recent chord order"></div><button id="clear">Clear order</button><p class="muted">This records the order of your last 24 presses, not audio or timing. Everything stays in this page.</p><div id="status" class="status" role="status">Ready. Press a chord to enable audio.</div><p class="muted">Piano-like synthesis or stereo supersaw · no samples, uploads, or connection to the DAW. Turn off “Low root” to focus on the upper voicings. Esc stops all notes.</p></div>
-<script>
-const $=id=>document.getElementById(id), names=['C','D♭','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
-const defs=[{r:0,q:'m',degree:'i',triad:[0,3,7]},{r:2,q:'dim',degree:'ii°',triad:[0,3,6]},{r:3,q:'',degree:'III',triad:[0,4,7]},{r:5,q:'m',degree:'iv',triad:[0,3,7]},{r:7,q:'m',degree:'v',triad:[0,3,7]},{r:8,q:'',degree:'VI',triad:[0,4,7]},{r:10,q:'',degree:'VII',triad:[0,4,7]}];
-let ctx,master,active=new Map(),order=[],selected=0;
-const shapes=defs.map(()=>({inv:0,oct:0,spread:false}));
-const root=()=>+$('root').value;const title=i=>names[(root()+defs[i].r)%12]+defs[i].q;const note=n=>names[(n+120)%12]+(Math.floor(n/12)-1);
-function pitchesFor(i){let d=defs[i],v=shapes[i],base=60+root()+d.r;while(base>71)base-=12;let notes=d.triad.map(n=>base+n+v.oct*12);for(let j=0;j<v.inv;j++)notes.push(notes.shift()+12);if(v.spread)notes[1]+=12;return notes.sort((a,b)=>a-b)}
-function shapeLabel(i){let v=shapes[i];return ['Root','1st inversion','2nd inversion'][v.inv]+(v.spread?' · Spread':'')+' · Oct '+(v.oct>=0?'+':'')+v.oct}
-function render(){ $('chords').replaceChildren(...defs.map((d,i)=>{let b=document.createElement('button');b.className='chord';b.dataset.index=i;b.setAttribute('aria-label',`${i+1}: ${title(i)}`);b.innerHTML=`<span class="key">${i+1}</span><span class="roman">${d.degree}</span><strong class="name">${title(i)}</strong><span class="notes">${pitchesFor(i).map(note).join(' · ')}<br>${shapeLabel(i)}</span>`;b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);play(i,'pointer'+e.pointerId)};b.onpointerup=e=>release('pointer'+e.pointerId);b.onpointercancel=e=>release('pointer'+e.pointerId);b.onkeydown=e=>{if(e.code==='Enter'){e.preventDefault();if(!e.repeat)play(i,'button'+i)}};b.onkeyup=e=>{if(e.code==='Enter'){e.preventDefault();release('button'+i)}};return b}));paint();}
-function updateLabels(){document.querySelectorAll('.chord').forEach((b,i)=>b.querySelector('.notes').innerHTML=pitchesFor(i).map(note).join(' · ')+'<br>'+shapeLabel(i));paint()}
-function adjust(kind,delta=0){let v=shapes[selected];if(kind==='inv')v.inv=(v.inv+delta+3)%3;if(kind==='oct')v.oct=Math.max(-2,Math.min(2,v.oct+delta));if(kind==='spread')v.spread=!v.spread;retune();updateLabels()}
-function retune(){let tokens=[...active.entries()].filter(([t,e])=>e.i===selected).map(([t])=>t);for(let t of tokens){release(t);play(selected,t,false)}}
-function latch(){if(active.has('latch'))release('latch');else play(selected,'latch',false);paint()}
-function init(){if(!ctx){ctx=new AudioContext();master=ctx.createGain();master.gain.value=+$('volume').value/100*.23;let limiter=ctx.createDynamicsCompressor();limiter.threshold.value=-12;limiter.ratio.value=8;master.connect(limiter);limiter.connect(ctx.destination)}return ctx.resume()}
-function sawVoice(midi,t){
-let envelope=ctx.createGain(),filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.setValueAtTime(5500,t);filter.Q.value=.55;filter.connect(envelope);envelope.connect(master);
-envelope.gain.setValueAtTime(0,t);envelope.gain.linearRampToValueAtTime(.30,t+.035);
-let oscillators=[];[-19,-12,-6,0,6,12,19].forEach((detune,i)=>{let o=ctx.createOscillator(),g=ctx.createGain(),pan=ctx.createStereoPanner();let phase=Math.random()*Math.PI*2,real=new Float32Array(65),imag=new Float32Array(65);for(let h=1;h<65;h++){real[h]=Math.sin(h*phase)/h;imag[h]=Math.cos(h*phase)/h}o.setPeriodicWave(ctx.createPeriodicWave(real,imag));o.frequency.value=440*2**((midi-69)/12);o.detune.value=detune;g.gain.value=1/7;pan.pan.value=(i-3)/3*.8;o.connect(g);g.connect(pan);pan.connect(filter);o.start(t);oscillators.push(o)});
-return {envelope,oscillators,filter};}
-function voice(midi,t){if($('sound').value==='supersaw')return sawVoice(midi,t);let envelope=ctx.createGain();envelope.connect(master);envelope.gain.setValueAtTime(0,t);envelope.gain.linearRampToValueAtTime(.36,t+.008);envelope.gain.exponentialRampToValueAtTime(.13,t+.3);envelope.gain.exponentialRampToValueAtTime(.018,t+4);let oscillators=[];[1,2,3,4,6].forEach((h,j)=>{let o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=440*2**((midi-69)/12)*h*(1+j*j*.00012);g.gain.value=[1,.35,.13,.06,.025][j];o.connect(g);g.connect(envelope);o.start(t);oscillators.push(o)});return {envelope,oscillators}}
-async function play(i,token,remember=true){if(active.has(token))return;if(selected!==i&&active.has('latch'))release('latch');selected=i;paint();let entry={i,voices:[]};active.set(token,entry);try{await init();if(active.get(token)!==entry)return;const t=ctx.currentTime;let pitches=pitchesFor(i);if($('bass').checked)pitches.unshift(36+root()+defs[i].r);entry.voices=pitches.map((n,j)=>voice(n,t+j*.003));if(remember)order.push(title(i)+' · '+shapeLabel(i));order=order.slice(-24);$('history').replaceChildren(...order.map(x=>{let s=document.createElement('span');s.className='chip';s.textContent=x;return s}));$('status').textContent=`Playing ${title(i)} · ${pitches.map(note).join(' / ')}`;paint()}catch(e){active.delete(token);$('status').textContent='Audio could not start. Click a chord and try again.'}}
-function release(token){let entry=active.get(token);if(!entry)return;active.delete(token);if(ctx)for(let v of entry.voices){v.envelope.gain.cancelAndHoldAtTime(ctx.currentTime);v.envelope.gain.setTargetAtTime(0,ctx.currentTime,.12);v.oscillators.forEach(o=>o.stop(ctx.currentTime+.9));setTimeout(()=>{v.envelope.disconnect();if(v.filter)v.filter.disconnect()},1100)}paint();if(!active.size)$('status').textContent='Ready for the next chord.'}
-function buildPiano(){let whites=[];for(let n=24;n<=108;n++)if(![1,3,6,8,10].includes(n%12))whites.push(n);let width=100/whites.length;let count=0;for(let n=24;n<=108;n++){let black=[1,3,6,8,10].includes(n%12),key=document.createElement('div');key.className='pkey'+(black?' black':'');key.dataset.midi=n;key.title=note(n);key.textContent=note(n);key.style.left=(black?count*width-width*.31:count*width)+'%';key.style.width=(black?width*.62:width)+'%';$('piano').append(key);if(!black)count++}}
-function paintPiano(){let upper=new Set(),bass=new Set();for(let entry of active.values()){pitchesFor(entry.i).forEach(n=>upper.add(n));if($('bass').checked)bass.add(36+root()+defs[entry.i].r)}document.querySelectorAll('.pkey').forEach(k=>{let n=+k.dataset.midi;k.classList.toggle('lit',upper.has(n));k.classList.toggle('low',bass.has(n))});let notes=[...new Set([...upper,...bass])].sort((a,b)=>a-b);$('piano-notes').textContent=notes.length?notes.map(note).join(' · '):'Play a chord to see its notes.';$('piano').setAttribute('aria-label','Piano keyboard. '+(notes.length?'Playing '+notes.map(note).join(', '):'No notes held.'))}
-function paint(){paintPiano();document.querySelectorAll('.chord').forEach((b,i)=>{b.classList.toggle('active',[...active.values()].some(e=>e.i===i));b.classList.toggle('selected',i===selected)});$('selection').textContent='Selected: '+(selected+1)+' · '+title(selected)+' · '+shapeLabel(selected);$('latch').textContent=active.has('latch')?'Space · Release latch':'Space · Latch';$('latch').setAttribute('aria-pressed',String(active.has('latch')));$('spread').setAttribute('aria-pressed',String(shapes[selected].spread))}
-function stop(){[...active.keys()].forEach(release)}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){stop();return}if(e.ctrlKey||e.metaKey||e.altKey||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;let k=e.key.toLowerCase();if(/^[1-7]$/.test(k)){e.preventDefault();if(!e.repeat)play(+k-1,e.code);return}if(['h','l','j','k','o','b','p',' '].includes(k)){e.preventDefault();if(e.repeat)return;if(k==='h'||k==='l')adjust('inv',k==='h'?-1:1);if(k==='j'||k==='k')adjust('oct',k==='j'?-1:1);if(k==='o')adjust('spread');if(k===' ')latch();if(k==='b'){$('bass').checked=!$('bass').checked;retune()}if(k==='p'){$('sound').value=$('sound').value==='piano'?'supersaw':'piano';retune()}}});document.addEventListener('keyup',e=>release(e.code));window.addEventListener('blur',stop);document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});
-$('invdown').onclick=()=>adjust('inv',-1);$('invup').onclick=()=>adjust('inv',1);$('octdown').onclick=()=>adjust('oct',-1);$('octup').onclick=()=>adjust('oct',1);$('spread').onclick=()=>adjust('spread');$('latch').onclick=latch;$('bass').onchange=retune;
-$('stop').onclick=stop;$('clear').onclick=()=>{order=[];$('history').replaceChildren()};$('root').onchange=()=>{stop();render();$('status').textContent='Key changed. Earlier chord names remain in your history.'};$('sound').onchange=()=>{stop();$('status').textContent=$('sound').value==='supersaw'?'Supersaw ready. Hold a chord to hear it sustain.':'Piano ready.'};$('volume').oninput=()=>{if(master)master.gain.setTargetAtTime(+$('volume').value/100*.23,ctx.currentTime,.02)};buildPiano();render();$('history').replaceChildren(...order.map(x=>{let s=document.createElement('span');s.className='chip';s.textContent=x;return s}));
-</script></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Chord Explorer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Chord<span> / </span>Explorer</h1>
+      <details>
+        <summary>How to play</summary>
+        <div class="help">
+          <p>
+            <b>Play:</b> hold keys 1–7 or a chord pad. Release to stop. Try
+            <b>1 → 6 → 3 → 7</b>.
+          </p>
+          <p>
+            <b>Shape:</b> the last chord you played stays selected. H/L changes
+            inversion; J/K changes octave. O spreads the notes. Each chord
+            remembers its shape.
+          </p>
+          <p>
+            <b>Hold:</b> Space latches the selected chord so you can edit it
+            hands-free. Esc stops everything.
+          </p>
+          <p>
+            <b>Sound:</b> P switches piano/supersaw. B toggles the low root.
+            Click outside a dropdown before using shortcuts.
+          </p>
+          <p>
+            The trail remembers order, not timing. Reload resets this session.
+            All audio is synthesized locally.
+          </p>
+        </div>
+      </details>
+    </header>
+    <div class="setup">
+      <div class="field">
+        <label class="caption" for="root">Key</label
+        ><select id="root">
+          <option value="4" selected>E minor</option>
+          <option value="5">F minor</option>
+          <option value="6">F♯ minor</option>
+          <option value="7">G minor</option>
+          <option value="2">D minor</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="caption" for="sound">Sound <kbd>P</kbd></label
+        ><select id="sound">
+          <option value="piano">Piano</option>
+          <option value="supersaw" selected>Supersaw</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="caption">Bass <kbd>B</kbd></span
+        ><label><input id="bass" type="checkbox" checked />Low root</label>
+      </div>
+      <div class="field volume">
+        <label class="caption" for="volume">Volume</label
+        ><input
+          id="volume"
+          aria-label="Volume"
+          type="range"
+          min="0"
+          max="100"
+          value="100"
+        />
+      </div>
+      <button id="stop"><kbd>Esc</kbd> Stop</button>
+    </div>
+    <div class="section-head">
+      <span class="section-title">01 / Play</span
+      ><span class="hint">Hold a number key or a pad</span>
+    </div>
+    <div id="chords" class="chords"></div>
+    <div class="shape-bar">
+      <div class="selected-info">
+        <span class="section-title">02 / Shape selected chord</span>
+        <p id="selection" aria-live="polite"></p>
+      </div>
+      <div class="toolgroup">
+        <span>Inversion</span
+        ><button id="invdown" aria-label="Previous inversion (H)">
+          <kbd>H</kbd> ←</button
+        ><button id="invup" aria-label="Next inversion (L)">
+          <kbd>L</kbd> →
+        </button>
+      </div>
+      <div class="toolgroup">
+        <span>Octave</span
+        ><button id="octdown" aria-label="Lower octave (J)">
+          <kbd>J</kbd> −</button
+        ><button id="octup" aria-label="Raise octave (K)">
+          <kbd>K</kbd> +
+        </button>
+      </div>
+      <button id="spread"><kbd>O</kbd> Spread</button
+      ><button id="latch"><kbd>Space</kbd> Hold</button>
+    </div>
+    <section class="piano-panel" aria-label="Live piano visualization">
+      <div class="piano-top">
+        <p id="piano-notes" role="status">No notes held</p>
+        <span class="legend"><i></i>Chord <i class="bass"></i>Bass</span>
+      </div>
+      <div class="piano-scroll">
+        <div
+          id="piano"
+          class="piano"
+          role="img"
+          aria-label="Piano keyboard"
+        ></div>
+      </div>
+    </section>
+    <div class="history-row">
+      <span class="section-title">Trail</span>
+      <div id="history" class="history" aria-label="Recent chord order"></div>
+      <button id="clear">Clear</button>
+    </div>
+    <div id="status" role="status">Ready to play</div>
+    <script defer src="js/chords.js"></script>
+    <script defer src="js/audio.js"></script>
+    <script defer src="js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,392 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #111518;
+  color: #e8ebe7;
+  font:
+    14px "Avenir Next",
+    "Segoe UI",
+    sans-serif;
+  padding: 24px;
+  max-width: 1240px;
+  margin: auto;
+}
+button,
+select,
+input {
+  font: inherit;
+}
+button,
+select {
+  color: inherit;
+  background: #232b30;
+  border: 1px solid #3b464d;
+  border-radius: 7px;
+  padding: 9px 12px;
+}
+button {
+  cursor: pointer;
+}
+button:hover {
+  background: #303b41;
+}
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid #b8e789;
+  outline-offset: 3px;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+h1 {
+  font-size: 23px;
+  letter-spacing: -0.6px;
+  margin: 0;
+}
+h1 span {
+  color: #b8e789;
+}
+kbd,
+.key {
+  font:
+    11px "SFMono-Regular",
+    Consolas,
+    monospace;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 24px;
+  height: 23px;
+  padding: 0 6px;
+  background: #10171b;
+  border: 1px solid #56636c;
+  border-bottom-width: 3px;
+  border-radius: 5px;
+  color: #d8e1e6;
+}
+button kbd {
+  margin-right: 5px;
+}
+.setup {
+  display: flex;
+  align-items: end;
+  gap: 20px;
+  padding-bottom: 19px;
+  border-bottom: 1px solid #303a40;
+}
+.field {
+  display: grid;
+  gap: 6px;
+}
+.caption,
+.section-title {
+  color: #92a0a7;
+  font:
+    10px "SFMono-Regular",
+    Consolas,
+    monospace;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.field label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.volume {
+  margin-left: auto;
+}
+input {
+  accent-color: #b8e789;
+}
+#bass {
+  width: 16px;
+  height: 16px;
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 19px 0 10px;
+}
+.hint {
+  color: #a4b0b6;
+  font-size: 12px;
+}
+.chords {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+.chord {
+  position: relative;
+  text-align: left;
+  min-height: 123px;
+  padding: 13px;
+  touch-action: none;
+  user-select: none;
+  background: #1b2429;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+.chord.selected {
+  border-color: #b8e789;
+  box-shadow: 0 0 0 1px #b8e789;
+}
+.chord.active {
+  background: #b8e789;
+  color: #182219;
+}
+.chord.active .notes,
+.chord.active .roman {
+  color: #344b36;
+}
+.roman {
+  float: right;
+  color: #87969e;
+  font-size: 12px;
+}
+.name {
+  display: block;
+  font-size: 28px;
+  letter-spacing: -0.6px;
+  margin: 10px 0 4px;
+}
+.notes {
+  font-size: 10px;
+  color: #96a6ae;
+  line-height: 1.6;
+}
+.shape-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+}
+.selected-info {
+  min-width: 210px;
+  flex: 1;
+}
+#selection {
+  font-size: 13px;
+  margin: 5px 0 0;
+}
+.toolgroup {
+  display: flex;
+  gap: 5px;
+  border-left: 1px solid #354047;
+  padding-left: 12px;
+  align-items: center;
+}
+.toolgroup > span {
+  font-size: 11px;
+  color: #9cabb2;
+  margin-right: 4px;
+}
+#spread[aria-pressed="true"],
+#latch[aria-pressed="true"] {
+  background: #37523e;
+  border-color: #b8e789;
+}
+.piano-panel {
+  background: #1a2227;
+  border: 1px solid #354047;
+  border-radius: 9px;
+  padding: 12px;
+}
+.piano-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+#piano-notes {
+  font:
+    12px "SFMono-Regular",
+    Consolas,
+    monospace;
+  color: #c1ced4;
+  margin: 0;
+}
+.legend {
+  font-size: 10px;
+  color: #9baab2;
+}
+.legend i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #b8e789;
+  border-radius: 50%;
+  margin: 0 4px 0 10px;
+}
+.legend i.bass {
+  background: #6dd7d0;
+}
+.piano-scroll {
+  overflow-x: auto;
+}
+.piano {
+  position: relative;
+  height: 106px;
+  min-width: 650px;
+}
+.pkey {
+  position: absolute;
+  height: 104px;
+  background: #e3e8e9;
+  border: 1px solid #63717a;
+  border-radius: 0 0 4px 4px;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  padding-bottom: 6px;
+  font-size: 8px;
+  color: #435460;
+  z-index: 1;
+}
+.pkey.black {
+  height: 64px;
+  background: #182025;
+  color: transparent;
+  z-index: 2;
+}
+.pkey.lit {
+  background: #b8e789;
+  color: #22351b;
+}
+.pkey.low {
+  background: #6dd7d0;
+  color: #153a3b;
+}
+.history-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+.history {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  overflow-x: auto;
+  min-width: 0;
+  min-height: 29px;
+}
+.history:empty:before {
+  content: "Your chord trail appears here";
+  color: #61737d;
+  font-size: 12px;
+  padding-top: 5px;
+}
+.chip {
+  white-space: nowrap;
+  background: #222d33;
+  border-radius: 5px;
+  padding: 6px 9px;
+  font-size: 10px;
+  color: #b2c2ca;
+}
+#clear {
+  font-size: 11px;
+  background: transparent;
+  padding: 6px 10px;
+}
+#status {
+  font-size: 11px;
+  color: #7f959f;
+  margin-top: 9px;
+  min-height: 16px;
+}
+details {
+  position: relative;
+}
+summary {
+  cursor: pointer;
+  list-style: none;
+  color: #a9b9c2;
+  border: 1px solid #39474f;
+  padding: 8px 11px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.help {
+  position: absolute;
+  right: 0;
+  top: 38px;
+  width: 330px;
+  background: #222d33;
+  border: 1px solid #52636e;
+  padding: 18px;
+  border-radius: 9px;
+  z-index: 5;
+  box-shadow: 0 12px 45px #0008;
+  line-height: 1.7;
+  font-size: 12px;
+}
+.help p {
+  margin: 0 0 10px;
+}
+.help p:last-child {
+  margin: 0;
+}
+.help b {
+  color: #b8e789;
+}
+@media (max-width: 850px) {
+  body {
+    padding: 16px;
+  }
+  .shape-bar {
+    flex-wrap: wrap;
+  }
+  .selected-info {
+    flex-basis: 100%;
+  }
+  .setup {
+    gap: 12px;
+  }
+  .chords {
+    gap: 6px;
+  }
+  .chord {
+    padding: 9px;
+  }
+  .name {
+    font-size: 23px;
+  }
+  .toolgroup:first-of-type {
+    border: 0;
+    padding: 0;
+  }
+}
+@media (max-width: 600px) {
+  .setup {
+    flex-wrap: wrap;
+  }
+  .volume {
+    margin-left: 0;
+  }
+  .chords {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .legend {
+    display: none;
+  }
+  .toolgroup {
+    padding-left: 5px;
+  }
+  .toolgroup button {
+    padding: 6px;
+  }
+  .help {
+    width: 280px;
+  }
+}
